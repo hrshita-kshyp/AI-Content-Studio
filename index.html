@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #d946ef);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 48px;
+            align-items: start;
+        }
+
+        .controls {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            border: 1px solid #e2e8f0;
+            position: sticky;
+            top: 32px;
+        }
+
+        .form-section {
+            margin-bottom: 32px;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .templates {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .template-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+
+        .template-card:hover {
+            background: #f1f5f9;
+            border-color: #6366f1;
+        }
+
+        .template-card.active {
+            background: #eef2ff;
+            border-color: #6366f1;
+            color: #6366f1;
+        }
+
+        .template-emoji {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+
+        .template-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            background: #ffffff;
+            transition: border-color 0.15s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+        }
+
+        input::placeholder {
+            color: #9ca3af;
+        }
+
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px -5px rgb(99 102 241 / 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .output-container {
+            background: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .output-header {
+            background: #f8fafc;
+            padding: 24px 32px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .output-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .copy-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .copy-btn:hover {
+            background: #059669;
+        }
+
+        .output-content {
+            padding: 32px;
+            min-height: 500px;
+        }
+
+        .generated-text {
+            font-size: 0.9375rem;
+            line-height: 1.7;
+            color: #374151;
+            white-space: pre-wrap;
+            font-family: ui-serif, Georgia, serif;
+        }
+
+        .placeholder-text {
+            color: #9ca3af;
+            text-align: center;
+            padding: 80px 0;
+            font-size: 1rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 80px 0;
+        }
+
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        .loading-text {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .word-count {
+            position: absolute;
+            bottom: 16px;
+            right: 24px;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .controls {
+                position: static;
+            }
+
+            .templates {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .templates {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .controls {
+                padding: 24px;
+            }
+
+            .output-content {
+                padding: 24px;
+            }
+        }
+
+        /* Custom scrollbar */
+        .generated-text::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .generated-text::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .generated-text::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Content Studio</h1>
+            <p>Generate professional content with artificial intelligence</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="controls">
+                <div class="form-section">
+                    <div class="section-title">Content Type</div>
+                    <div class="templates">
+                        <div class="template-card active" data-type="blog">
+                            <div class="template-emoji">📝</div>
+                            <div class="template-name">Blog Post</div>
+                        </div>
+                        <div class="template-card" data-type="social">
+                            <div class="template-emoji">📱</div>
+                            <div class="template-name">Social</div>
+                        </div>
+                        <div class="template-card" data-type="email">
+                            <div class="template-emoji">✉️</div>
+                            <div class="template-name">Email</div>
+                        </div>
+                        <div class="template-card" data-type="product">
+                            <div class="template-emoji">🛍️</div>
+                            <div class="template-name">Product</div>
+                        </div>
+                        <div class="template-card" data-type="story">
+                            <div class="template-emoji">📚</div>
+                            <div class="template-name">Story</div>
+                        </div>
+                        <div class="template-card" data-type="ad">
+                            <div class="template-emoji">📢</div>
+                            <div class="template-name">Ad Copy</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="input-group">
+                        <label class="input-label" for="topic">Topic</label>
+                        <input type="text" id="topic" placeholder="What would you like to write about?" value="sustainable living">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" for="tone">Tone</label>
+                        <select id="tone">
+                            <option value="professional">Professional</option>
+                            <option value="casual">Casual</option>
+                            <option value="friendly">Friendly</option>
+                            <option value="persuasive">Persuasive</option>
+                            <option value="humorous">Humorous</option>
+                            <option value="inspirational">Inspirational</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" for="length">Length</label>
+                        <select id="length">
+                            <option value="short">Short (200-300 words)</option>
+                            <option value="medium" selected>Medium (400-600 words)</option>
+                            <option value="long">Long (600-800 words)</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" for="keywords">Keywords</label>
+                        <input type="text" id="keywords" placeholder="Optional keywords">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" for="audience">Target Audience</label>
+                        <input type="text" id="audience" placeholder="e.g., young professionals">
+                    </div>
+                </div>
+
+                <button class="generate-btn" onclick="generateContent()">
+                    Generate Content
+                </button>
+            </div>
+
+            <div class="output-container">
+                <div class="output-header">
+                    <div class="output-title">Generated Content</div>
+                    <button class="copy-btn" onclick="copyContent()" style="display: none;" id="copyBtn">
+                        Copy
+                    </button>
+                </div>
+
+                <div class="output-content">
+                    <div class="loading" id="loading">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text">Generating your content...</div>
+                    </div>
+
+                    <div class="placeholder-text" id="placeholder">
+                        Select your content type and topic, then click "Generate Content" to create AI-powered content tailored to your needs.
+                    </div>
+
+                    <div class="generated-text" id="output" style="display: none;"></div>
+                    <div class="word-count" id="wordCount" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedType = 'blog';
+
+        // Template selection
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.template-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                selectedType = card.dataset.type;
+            });
+        });
+
+        function generateContent() {
+            const topic = document.getElementById('topic').value || 'general topic';
+            const tone = document.getElementById('tone').value;
+            const length = document.getElementById('length').value;
+            const keywords = document.getElementById('keywords').value;
+            const audience = document.getElementById('audience').value;
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('placeholder').style.display = 'none';
+            document.getElementById('output').style.display = 'none';
+            document.getElementById('copyBtn').style.display = 'none';
+            document.getElementById('wordCount').style.display = 'none';
+
+            // Simulate API call delay
+            setTimeout(() => {
+                const content = generateMockContent(selectedType, topic, tone, length, keywords, audience);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('output').style.display = 'block';
+                document.getElementById('output').textContent = content;
+                document.getElementById('copyBtn').style.display = 'block';
+                
+                // Update word count
+                const wordCount = content.trim().split(/\s+/).length;
+                document.getElementById('wordCount').textContent = `${wordCount} words`;
+                document.getElementById('wordCount').style.display = 'block';
+            }, 1500 + Math.random() * 1000);
+        }
+
+        function generateMockContent(type, topic, tone, length, keywords, audience) {
+            const audienceText = audience ? ` for ${audience}` : '';
+            
+            switch(type) {
+                case 'blog':
+                    return generateBlogPost(topic, tone, length, audienceText, keywords);
+                case 'social':
+                    return generateSocialPost(topic, tone, length, audienceText, keywords);
+                case 'email':
+                    return generateEmail(topic, tone, length, audienceText, keywords);
+                case 'product':
+                    return generateProductCopy(topic, tone, length, audienceText, keywords);
+                case 'story':
+                    return generateStory(topic, tone, length, audienceText, keywords);
+                case 'ad':
+                    return generateAd(topic, tone, length, audienceText, keywords);
+                default:
+                    return generateBlogPost(topic, tone, length, audienceText, keywords);
+            }
+        }
+
+        function generateBlogPost(topic, tone, length, audience, keywords) {
+            const titles = [
+                `The Complete Guide to ${topic}: Everything You Need to Know`,
+                `Mastering ${topic}: A Comprehensive Deep Dive`,
+                `The Future of ${topic}: Trends, Insights, and Practical Applications`,
+                `Understanding ${topic}: From Basics to Advanced Strategies`
+            ];
+            
+            const title = titles[Math.floor(Math.random() * titles.length)];
+            
+            let content = `${title}\n\n`;
+            
+            // Introduction based on tone
+            if (tone === 'humorous') {
+                content += `Let's be honest - ${topic} isn't exactly the most riveting topic at cocktail parties. But before you click away faster than you'd swipe left on a dating app, hear me out. What I'm about to share might just change how you think about ${topic} forever.\n\n`;
+                content += `I used to be one of those people who thought ${topic} was about as exciting as watching paint dry in slow motion. Then I discovered something that completely flipped my perspective upside down.\n\n`;
+            } else if (tone === 'inspirational') {
+                content += `Imagine waking up tomorrow with a completely transformed understanding of ${topic}. Picture yourself confidently navigating challenges that once seemed insurmountable, armed with knowledge that empowers rather than overwhelms.\n\n`;
+                content += `This isn't just another article about ${topic} - it's your roadmap to mastery. Every expert was once a beginner, and today marks the beginning of your journey toward expertise.\n\n`;
+            } else if (tone === 'professional') {
+                content += `In today's rapidly evolving landscape${audience}, ${topic} has emerged as a critical factor determining success and sustainability. Organizations that fail to adapt to these changes risk falling behind their competitors who embrace innovation.\n\n`;
+                content += `This comprehensive analysis examines the current state of ${topic}, identifies key trends shaping its future, and provides actionable strategies for implementation across various scenarios.\n\n`;
+            } else {
+                content += `The world of ${topic} is changing faster than ever before${audience}. What worked yesterday may not work today, and what works today might be obsolete tomorrow. But that's exactly why understanding the fundamentals matters more than ever.\n\n`;
+                content += `In this guide, we'll explore everything you need to know about ${topic}, from the basic principles to advanced strategies that leading experts are using to stay ahead of the curve.\n\n`;
+            }
+
+            // Main content sections
+            content += `## Why ${topic} Matters More Than Ever\n\n`;
+            
+            if (tone === 'humorous') {
+                content += `Remember when we thought ${topic} was just a fancy buzzword that would disappear faster than your motivation on a Monday morning? Well, plot twist - it's here to stay, and it's making a bigger impact than a meteor hitting Earth.\n\n`;
+            } else {
+                content += `The significance of ${topic} extends far beyond surface-level benefits. Research shows that individuals and organizations who properly understand and implement ${topic} strategies see measurable improvements in efficiency, outcomes, and long-term sustainability.\n\n`;
+            }
+
+            content += `Consider these key factors that make ${topic} essential:\n\n`;
+            content += `**Enhanced Decision Making**: When you understand ${topic} principles, you make better choices based on data and proven methodologies rather than guesswork.\n\n`;
+            content += `**Competitive Advantage**: In a world where everyone has access to the same basic tools, ${topic} expertise becomes the differentiating factor that sets leaders apart from followers.\n\n`;
+            content += `**Risk Mitigation**: Proper ${topic} implementation helps identify potential problems before they become costly mistakes, saving both time and resources.\n\n`;
+            content += `**Scalable Growth**: The frameworks and systems built around ${topic} create foundations that can support expansion and adaptation over time.\n\n`;
+
+            content += `## The Foundation: Understanding Core Principles\n\n`;
+            
+            content += `Before diving into advanced strategies, it's crucial to establish a solid understanding of what ${topic} actually means and why it works the way it does.\n\n`;
+            
+            if (tone === 'casual') {
+                content += `Think of ${topic} like building a house. You wouldn't start with the roof, right? You need a strong foundation first. The same principle applies here - master the basics, and everything else becomes significantly easier.\n\n`;
+            } else {
+                content += `The fundamental principles of ${topic} are built on decades of research, real-world testing, and continuous refinement. These aren't theoretical concepts - they're practical frameworks that have been proven to work across different contexts and industries.\n\n`;
+            }
+
+            content += `Here are the core elements you need to understand:\n\n`;
+            content += `**Systematic Approach**: Effective ${topic} isn't random or haphazard. It follows clear, repeatable processes that can be measured and improved over time.\n\n`;
+            content += `**Continuous Learning**: The best practitioners never stop learning and adapting. They treat every experience as an opportunity to refine their understanding.\n\n`;
+            content += `**Balance and Integration**: Success comes from finding the right balance between different elements rather than focusing on any single aspect in isolation.\n\n`;
+
+            if (length === 'medium' || length === 'long') {
+                content += `## Practical Implementation Strategies\n\n`;
+                
+                content += `Now that we've covered the theoretical foundation, let's focus on practical implementation. This is where most people struggle - they understand the concepts but don't know how to apply them effectively.\n\n`;
+                
+                if (tone === 'friendly') {
+                    content += `Don't worry if this feels overwhelming at first. Everyone goes through this phase, and with the right approach, you'll be implementing these strategies like a pro in no time.\n\n`;
+                }
+                
+                content += `**Start Small, Think Big**: Begin with manageable projects that allow you to practice and build confidence. Success breeds success, and early wins create momentum for larger initiatives.\n\n`;
+                content += `**Measure Everything**: You can't improve what you don't measure. Establish clear metrics and tracking systems from the beginning to understand what's working and what needs adjustment.\n\n`;
+                content += `**Build Support Systems**: Surround yourself with resources, tools, and people who can help you succeed. This might include mentors, communities, software platforms, or educational materials.\n\n`;
+                content += `**Embrace Iteration**: Perfect execution is less important than consistent improvement. Focus on getting started and refining your approach based on real-world feedback.\n\n`;
+            }
+
+            if (length === 'long') {
+                content += `## Advanced Techniques for Mastery\n\n`;
+                
+                content += `Once you've mastered the fundamentals, these advanced techniques will help you achieve exceptional results and stand out from the crowd.\n\n`;
+                
+                content += `**Pattern Recognition**: Develop the ability to identify patterns and trends that others miss. This skill comes from experience and careful observation of how different factors interact.\n\n`;
+                content += `**Strategic Thinking**: Move beyond tactical execution to strategic planning. Consider long-term implications and how current decisions affect future opportunities.\n\n`;
+                content += `**Innovation Integration**: Don't just follow best practices - create them. Look for opportunities to combine existing methods in new ways or adapt techniques from other fields.\n\n`;
+                content += `**Mentorship and Teaching**: One of the best ways to deepen your understanding is to teach others. Consider how you can share your knowledge and learn from the questions others ask.\n\n`;
+            }
+
+            // Conclusion
+            content += `## Moving Forward: Your Next Steps\n\n`;
+            
+            if (tone === 'inspirational') {
+                content += `You now have the knowledge and tools to transform your relationship with ${topic}. The question isn't whether you can succeed - it's whether you're ready to take action and commit to the journey ahead.\n\n`;
+                content += `Remember, every expert was once exactly where you are now. The difference between those who achieve mastery and those who don't isn't talent or luck - it's the willingness to start and the persistence to continue when things get challenging.\n\n`;
+            } else {
+                content += `Success with ${topic} isn't about perfection - it's about progress. Start with the fundamentals, build consistent habits, and gradually expand your capabilities as you gain experience and confidence.\n\n`;
+            }
+
+            content += `The key is to begin now, even if you don't feel completely ready. Action creates clarity, and clarity leads to better results. Your future self will thank you for taking the first step today.\n\n`;
+            
+            if (tone === 'humorous') {
+                content += `And hey, if you mess up along the way, at least you'll have some interesting stories to tell at those cocktail parties. Who knows? You might even make ${topic} sound exciting.`;
+            } else {
+                content += `The journey of mastering ${topic} is ongoing, but it's also incredibly rewarding. Stay curious, keep learning, and don't be afraid to experiment with new approaches as you continue to grow and evolve.`;
+            }
+
+            if (keywords) {
+                content += `\n\n---\n*Keywords: ${keywords}*`;
+            }
+
+            return content;
+        }
+
+        function generateSocialPost(topic, tone, length, audience, keywords) {
+            let content = '';
+            
+            // Create more substantial social content based on length
+            if (length === 'short') {
+                return generateShortSocialPost(topic, tone, audience, keywords);
+            }
+            
+            // Medium and long social posts (400-600+ words)
+            const hooks = [
+                `🧵 Thread: Everything I wish I knew about ${topic} before I started`,
+                `💡 Unpopular opinion about ${topic} (but hear me out)`,
+                `🔥 Hot take: Most people are doing ${topic} completely wrong`,
+                `📈 Here's what 5 years of working with ${topic} taught me`,
+                `⚡ The ${topic} mistakes that cost me thousands (so you don't have to make them)`
+            ];
+            
+            const hook = hooks[Math.floor(Math.random() * hooks.length)];
+            content += `${hook}\n\n`;
+            
+            if (tone === 'humorous') {
+                content += `I used to think ${topic} was like assembling IKEA furniture - theoretically simple, but guaranteed to make you question your life choices. Turns out, I was half right.\n\n`;
+                content += `The problem wasn't ${topic} itself. The problem was that I was approaching it with the same energy I bring to reading terms and conditions - which is to say, not at all.\n\n`;
+            } else if (tone === 'inspirational') {
+                content += `Three years ago, ${topic} felt like this impossible mountain I'd never climb. Today, I'm not just at the summit - I'm helping others find their path up.\n\n`;
+                content += `The transformation didn't happen overnight. It happened through small, consistent actions that compounded over time.\n\n`;
+            } else {
+                content += `After working with hundreds of people on ${topic}${audience}, I've noticed the same patterns emerge again and again.\n\n`;
+                content += `The ones who succeed aren't necessarily the smartest or most talented. They're the ones who understand these fundamental principles:\n\n`;
+            }
+
+            // Main content points (expanded for longer posts)
+            content += `1/ The biggest myth about ${topic}:\n`;
+            if (tone === 'humorous') {
+                content += `That you need to be some kind of genius to figure it out. Spoiler alert: you don't. You just need to be willing to look slightly foolish while you learn.\n\n`;
+            } else {
+                content += `That it requires natural talent or years of experience to see results. The truth is, most breakthroughs come from applying basic principles consistently.\n\n`;
+            }
+
+            content += `2/ What actually matters:\n`;
+            content += `• Understanding the fundamentals before trying advanced techniques\n`;
+            content += `• Measuring progress with specific, actionable metrics\n`;
+            content += `• Building systems that work even when motivation fails\n`;
+            content += `• Learning from failures instead of avoiding them\n\n`;
+
+            content += `3/ The game-changer that most people miss:\n`;
+            content += `It's not about finding the "perfect" approach. It's about finding the approach that works for YOUR situation and consistently executing it.\n\n`;
+            content += `I've seen people spend months researching the "best" way to handle ${topic}, then never actually start. Meanwhile, others begin with an imperfect plan and iterate their way to success.\n\n`;
+
+            content += `4/ The mindset shift that changes everything:\n`;
+            if (tone === 'inspirational') {
+                content += `Stop asking "Am I good enough for this?" and start asking "How can I get good enough for this?"\n\n`;
+                content += `The first question paralyzes. The second question empowers.\n\n`;
+            } else {
+                content += `Treat ${topic} like a skill you're developing, not a test you're taking. Skills improve with practice. Tests judge you at a single moment in time.\n\n`;
+            }
+
+            content += `5/ What I'd tell my past self:\n`;
+            content += `Start before you feel ready. Learn by doing. Embrace the mess. Document your progress. Celebrate small wins.\n\n`;
+            content += `Most importantly: your timeline is not everyone else's timeline. Focus on your own growth and let the results speak for themselves.\n\n`;
+
+            if (tone === 'humorous') {
+                content += `And remember: if all else fails, at least you'll have some entertaining stories about that time you tried to master ${topic} and accidentally learned something about yourself instead.\n\n`;
+            } else if (tone === 'inspirational') {
+                content += `Your future self is counting on the decisions you make today. Make them count.\n\n`;
+            } else {
+                content += `The path isn't always linear, but it's always worth it.\n\n`;
+            }
+
+            // Engagement and hashtags
+            content += `What's been your biggest ${topic} challenge? Drop it in the comments - I read and respond to all of them.\n\n`;
+            content += `Found this helpful? Save it for later and share with someone who needs to see it.\n\n`;
+
+            // Hashtags
+            const hashtags = [
+                `#${topic.replace(/\s+/g, '')}`,
+                '#growthmindset',
+                '#productivity',
+                '#success',
+                '#learning',
+                '#motivation',
+                '#entrepreneurship',
+                '#personaldevelopment',
+                '#mindset',
+                '#goals'
+            ];
+
+            if (keywords) {
+                keywords.split(',').forEach(keyword => {
+                    hashtags.push(`#${keyword.trim().replace(/\s+/g, '')}`);
+                });
+            }
+
+            content += hashtags.slice(0, 8).join(' ');
+
+            return content;
+        }
+
+        function generateShortSocialPost(topic, tone, audience, keywords) {
+            const emojis = ['🚀', '✨', '💡', '🌟', '🎯', '💪', '🔥', '⚡'];
+            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+            
+            let content = `${randomEmoji} Your relationship with ${topic} will define your next chapter.\n\nHere's how to make it count:\n\n`;
+            content += `• The biggest mistake? Overthinking it\n`;
+            content += `• The best approach? Start small, scale smart\n`;
+            content += `• The secret ingredient? Consistency over perfection\n\n`;
+            content += `What's your experience with ${topic}? Drop a comment below! 👇\n\n`;
+            
+            const hashtags = [`#${topic.replace(/\s+/g, '')}`, '#productivity', '#growth', '#success', '#tips'];
+            content += hashtags.join(' ');
+            
+            return content;
+        }
+
+        function generateEmail(topic, tone, length, audience, keywords) {
+            const subjects = [
+                `The ${topic} breakthrough you've been waiting for`,
+                `Why everyone's talking about ${topic} (and you should too)`,
+                `Your ${topic} strategy is missing this crucial element`,
+                `The ${topic} approach that's changing everything`,
+                `What I learned from 1000+ hours of ${topic} research`
+            ];
+
+            const subject = subjects[Math.floor(Math.random() * subjects.length)];
+            
+            let content = `Subject: ${subject}\n\n`;
+            content += `Hi [First Name],\n\n`;
+
+            // Opening based on tone
+            if (tone === 'casual') {
+                content += `Hope your week's going well! I wanted to reach out because I've been diving deep into ${topic} lately, and what I discovered completely changed my perspective.\n\n`;
+            } else if (tone === 'professional') {
+                content += `I trust this email finds you well. I'm writing to share some significant insights about ${topic}${audience} that could have substantial implications for your objectives.\n\n`;
+            } else if (tone === 'friendly') {
+                content += `I hope you're having a fantastic day! I've been thinking about our last conversation, and I came across something about ${topic} that I knew you'd find valuable.\n\n`;
+            } else {
+                content += `I have some exciting developments to share about ${topic} that I believe will be of significant interest to you.\n\n`;
+            }
+
+            // Main content
+            content += `Here's what I've discovered:\n\n`;
+            
+            content += `**The Problem Most People Don't See:**\n`;
+            content += `While everyone's focused on the obvious aspects of ${topic}, they're missing the underlying patterns that actually drive results. This blind spot is costing time, energy, and opportunities.\n\n`;
+            
+            content += `**What's Actually Working Right Now:**\n`;
+            content += `I've been analyzing successful ${topic} implementations${audience}, and three clear patterns have emerged:\n\n`;
+            content += `1. **Strategic Simplification** - The most effective approaches strip away complexity and focus on core principles that deliver disproportionate results.\n\n`;
+            content += `2. **Data-Driven Iteration** - Rather than relying on assumptions, successful practitioners continuously test, measure, and refine their approach based on real-world feedback.\n\n`;
+            content += `3. **System Integration** - The breakthrough comes not from isolated tactics, but from creating interconnected systems that amplify each other's effectiveness.\n\n`;
+
+            if (length === 'medium' || length === 'long') {
+                content += `**The Shift That Changes Everything:**\n\n`;
+                content += `The most successful people I've studied don't just learn about ${topic} - they develop what I call "${topic} intuition." This is the ability to see patterns, anticipate challenges, and identify opportunities that others miss.\n\n`;
+                
+                content += `This intuition isn't magic or talent. It's the result of deliberate practice combined with strategic thinking. Here's how they develop it:\n\n`;
+                content += `• **Pattern Recognition**: They actively look for recurring themes and connections across different scenarios\n`;
+                content += `• **Assumption Testing**: They regularly question conventional wisdom and test their hypotheses\n`;
+                content += `• **Cross-Pollination**: They study how ${topic} principles apply in unexpected contexts\n`;
+                content += `• **Feedback Loops**: They create systems to get rapid, honest feedback on their decisions\n\n`;
+            }
+
+            if (length === 'long') {
+                content += `**A Real Example:**\n\n`;
+                content += `Last month, I worked with a client who was struggling with ${topic}. Using traditional approaches, they were seeing mediocre results despite significant effort.\n\n`;
+                content += `We implemented a simple framework based on these principles:\n`;
+                content += `- Identified the three highest-impact activities\n`;
+                content += `- Created measurement systems for each\n`;
+                content += `- Established weekly review and adjustment cycles\n`;
+                content += `- Built accountability mechanisms\n\n`;
+                content += `Within 30 days, they saw a 40% improvement in their key metrics. More importantly, they developed the confidence and system to continue improving independently.\n\n`;
+            }
+
+            // Call to action
+            content += `**What This Means for You:**\n\n`;
+            
+            if (tone === 'persuasive') {
+                content += `You have a choice to make. You can continue with the status quo and hope for different results, or you can embrace these insights and gain a significant advantage.\n\n`;
+            } else {
+                content += `I believe these insights could be valuable for your situation. The principles are universally applicable, but the specific implementation would depend on your unique context and goals.\n\n`;
+            }
+
+            content += `I'd love to discuss how this applies to your specific situation. Are you available for a brief 20-minute call this week?\n\n`;
+            content += `I can share some additional insights that didn't make it into this email, and we can explore how to adapt these strategies for your particular needs.\n\n`;
+
+            // Closing based on tone
+            if (tone === 'casual') {
+                content += `Let me know what you think - I'm curious to hear your perspective!\n\nTalk soon,\n[Your Name]`;
+            } else if (tone === 'professional') {
+                content += `I look forward to your thoughts and the possibility of continuing this conversation.\n\nBest regards,\n[Your Name]`;
+            } else {
+                content += `Hope to hear from you soon!\n\nBest,\n[Your Name]`;
+            }
+
+            // P.S. with keywords if provided
+            if (keywords) {
+                content += `\n\nP.S. I've been researching ${keywords} as well - there are some fascinating connections I'd love to share if you're interested.`;
+            }
+
+            return content;
+        }
+
+        function generateProductCopy(topic, tone, length, audience, keywords) {
+            let content = `🎯 The Ultimate ${topic} Solution${audience}\n\n`;
+
+            if (tone === 'persuasive') {
+                content += `Stop wasting time with approaches that don't work. While others struggle with outdated methods, you could be getting real results with a proven system.\n\n`;
+            } else if (tone === 'friendly') {
+                content += `We understand how challenging ${topic} can be. That's exactly why we created a solution that actually works - no complicated processes, no overwhelming information, just results.\n\n`;
+            } else {
+                content += `Professional-grade ${topic} solution designed specifically for modern challenges and built for sustainable success.\n\n`;
+            }
+
+            content += `**What Makes This Different:**\n\n`;
+            content += `Unlike generic solutions that try to be everything to everyone, this is specifically engineered for ${topic} success. Every feature, every process, every detail has been optimized based on real-world testing and feedback.\n\n`;
+
+            content += `✅ **What You Get:**\n`;
+            content += `• Complete ${topic} framework with step-by-step implementation guides\n`;
+            content += `• Proven strategies that have generated over $2M in documented results\n`;
+            content += `• Templates, checklists, and tools that eliminate guesswork\n`;
+            content += `• Direct access to expert support when you need guidance\n`;
+            content += `• 90-day money-back guarantee - no questions asked\n\n`;
+
+            content += `✅ **Why It Works:**\n`;
+            content += `This isn't theory or wishful thinking. Every strategy has been tested in real market conditions with measurable results. We've taken the guesswork out of ${topic} and created a repeatable system for success.\n\n`;
+
+            if (length === 'medium' || length === 'long') {
+                content += `**The Three-Phase System:**\n\n`;
+                content += `**Phase 1: Foundation Building** (Week 1-2)\n`;
+                content += `Establish the core principles and set up your infrastructure for success. Most people skip this step and wonder why they struggle later.\n\n`;
+                content += `**Phase 2: Strategic Implementation** (Week 3-6)\n`;
+                content += `Deploy the proven tactics and begin seeing measurable improvements. This is where the system really starts to show its power.\n\n`;
+                content += `**Phase 3: Optimization & Scaling** (Week 7+)\n`;
+                content += `Fine-tune your approach and scale what's working. By this phase, you'll have the confidence and data to make strategic decisions.\n\n`;
+            }
+
+            if (length === 'long') {
+                content += `**Real Success Stories:**\n\n`;
+                content += `"I was skeptical at first, but the results speak for themselves. In 60 days, I achieved what took me 6 months to accomplish before. This system works." - Sarah M., Marketing Director\n\n`;
+                content += `"The clarity and actionable steps made all the difference. No more guessing, no more wasted effort - just consistent progress toward my goals." - James K., Entrepreneur\n\n`;
+                content += `"I wish I had found this solution years ago. It would have saved me countless hours of frustration and thousands in wasted resources." - Maria L., Consultant\n\n`;
+            }
+
+            content += `🚀 **Limited Time Offer:**\n\n`;
+            content += `For the next 48 hours only, you can secure your copy for 50% off the regular price. This includes:\n`;
+            content += `• The complete ${topic} system (Value: $497)\n`;
+            content += `• Bonus implementation workshop (Value: $197)\n`;
+            content += `• 6 months of email support (Value: $297)\n`;
+            content += `• Exclusive member community access (Value: $97)\n\n`;
+            content += `**Total Value: $1,088**\n`;
+            content += `**Your Price Today: $297**\n\n`;
+
+            content += `**Risk-Free Guarantee:**\n`;
+            content += `Try it for 90 full days. If you don't see measurable improvement in your ${topic} results, simply email us for a complete refund. No questions, no hassles, no hard feelings.\n\n`;
+
+            content += `[SECURE YOUR COPY NOW] [Learn More]\n\n`;
+            content += `*Offer expires in 47 hours and 23 minutes*`;
+
+            if (keywords) {
+                content += `\n\n---\nOptimized for: ${keywords}`;
+            }
+
+            return content;
+        }
+
+        function generateStory(topic, tone, length, audience, keywords) {
+            let content = '';
+
+            const storyTitles = [
+                'The Turning Point',
+                'When Everything Changed',
+                'The Discovery That Shifted Everything',
+                'A Different Kind of Success Story'
+            ];
+
+            const title = storyTitles[Math.floor(Math.random() * storyTitles.length)];
+            content += `${title}\n\n`;
+
+            if (tone === 'humorous') {
+                content += `Marcus had always prided himself on being reasonably intelligent. He could solve a Rubik's cube, program his coffee maker, and even parallel park without causing a neighborhood evacuation. But when it came to ${topic}? He might as well have been trying to juggle flaming chainsaws while riding a unicycle.\n\n`;
+                content += `It wasn't for lack of trying. His browser history looked like a PhD dissertation on ${topic}, complete with more bookmarks than a librarian's personal collection. Yet somehow, the harder he tried, the more elusive success became.\n\n`;
+            } else if (tone === 'inspirational') {
+                content += `The morning Sarah first encountered ${topic}, she had no idea it would become the catalyst that transformed not just her career, but her entire perspective on what was possible.\n\n`;
+                content += `She was sitting in her cramped apartment, laptop balanced precariously on a stack of books that served as her makeshift desk, when she stumbled upon something that would change everything.\n\n`;
+            } else {
+                content += `The conference room fell silent as the quarterly results flashed on the screen. Everyone in the room understood the implications: their current approach to ${topic} wasn't working, and time was running out to find a solution.\n\n`;
+                content += `David, the team lead, had been wrestling with this challenge for months. Traditional methods were yielding diminishing returns, and the pressure to innovate was mounting.\n\n`;
+            }
+
+            // Character development and context
+            if (length === 'medium' || length === 'long') {
+                if (tone === 'humorous') {
+                    content += `The breakthrough came at 2:47 AM on a Tuesday, fueled by his fourth cup of coffee and a determination that bordered on obsession. He was scrolling through yet another article about ${topic} when something clicked - not in the article, but in his brain.\n\n`;
+                    content += `"What if," he thought, "I've been overthinking this entire thing?" It was like realizing you've been trying to push a door marked 'PULL' for the past twenty minutes.\n\n`;
+                } else if (tone === 'inspirational') {
+                    content += `The turning point wasn't dramatic or sudden. It was quiet, almost mundane - a single paragraph in a blog post that reframed everything she thought she knew about ${topic}.\n\n`;
+                    content += `For weeks, she had been approaching it like everyone else, following conventional wisdom and wondering why her results were so conventional. But this new perspective suggested something radical: what if the conventional approach was the problem?\n\n`;
+                } else {
+                    content += `The solution came from an unexpected source. During a casual conversation with a colleague from a completely different department, David learned about an approach to ${topic} that challenged every assumption his team had been operating under.\n\n`;
+                    content += `"We've been thinking about this backwards," his colleague had mentioned almost offhandedly. That simple observation sparked a complete reimagining of their strategy.\n\n`;
+                }
+            }
+
+            // The challenge and process
+            content += `The implementation wasn't smooth sailing. There were setbacks that made them question their sanity, moments when the old way seemed safer and more predictable, and late nights filled with troubleshooting and refinement.\n\n`;
+
+            if (tone === 'humorous') {
+                content += `Marcus later described those first weeks as "like teaching a goldfish to use a smartphone - theoretically possible, but requiring patience levels that would make monks jealous."\n\n`;
+            } else {
+                content += `But with each small victory, confidence grew. What started as tentative experimentation gradually evolved into systematic optimization.\n\n`;
+            }
+
+            if (length === 'long') {
+                content += `Three months into the process, something remarkable happened. The results weren't just meeting expectations - they were exceeding them in ways that seemed almost too good to be true.\n\n`;
+                
+                if (tone === 'inspirational') {
+                    content += `Sarah found herself being invited to speak at conferences, sharing insights that seemed obvious in retrospect but had been revolutionary just months before. The student had become the teacher.\n\n`;
+                } else {
+                    content += `Other teams began asking questions, wanting to understand how they had achieved such dramatic improvements. What had started as a desperate search for solutions had evolved into a competitive advantage.\n\n`;
+                }
+
+                content += `The most surprising discovery wasn't about ${topic} itself - it was about the power of challenging fundamental assumptions. When you question what everyone else takes for granted, you often find opportunities hiding in plain sight.\n\n`;
+            }
+
+            // Resolution and lesson
+            if (tone === 'inspirational') {
+                content += `Today, twelve months later, Sarah's company has become known as an innovator in ${topic}. But more importantly, she has learned that the biggest barriers to success are often the ones we create in our own minds.\n\n`;
+                content += `The lesson isn't really about ${topic} - it's about the courage to think differently, the persistence to work through challenges, and the wisdom to recognize that sometimes the best solutions are the ones that initially seem impossible.\n\n`;
+                content += `Every expert was once a beginner who refused to give up. Every breakthrough was once an idea that someone was brave enough to pursue despite the skeptics.`;
+            } else if (tone === 'humorous') {
+                content += `Marcus now gives presentations about ${topic} to packed auditoriums, though he still occasionally jokes that his success is mostly due to being too stubborn to quit and too caffeinated to think clearly.\n\n`;
+                content += `His favorite advice? "Sometimes the best way to solve a complex problem is to stop treating it like it's complex. Also, never underestimate the power of a good coffee maker."\n\n`;
+                content += `The real lesson, of course, is that breakthrough solutions often come disguised as simple common sense - we just have to be willing to see them.`;
+            } else {
+                content += `Six months later, David's team had not only solved their original challenge but had developed a framework that other departments began adopting. What started as crisis management had evolved into organizational transformation.\n\n`;
+                content += `The experience taught them that innovation often requires unlearning as much as learning. Sometimes the most important question isn't "How do we do this better?" but "Why do we do it this way at all?"\n\n`;
+                content += `Today, their approach to ${topic} is studied and replicated across the industry. But the real victory isn't in the recognition - it's in the knowledge that when faced with seemingly impossible challenges, creative solutions are always possible.`;
+            }
+
+            if (keywords) {
+                content += `\n\n---\nThemes explored: ${keywords}`;
+            }
+
+            return content;
+        }
+
+        function generateAd(topic, tone, length, audience, keywords) {
+            let content = '';
+
+            if (tone === 'persuasive') {
+                content = `⚠️ ATTENTION: Your competitors are already using advanced ${topic} strategies to dominate your market.\n\n`;
+                content += `While you're still figuring out the basics, they're implementing systems that generate results 3x faster than traditional methods.\n\n`;
+                content += `Don't let them leave you behind.\n\n`;
+            } else if (tone === 'humorous') {
+                content = `🤔 Still approaching ${topic} like it's 2015?\n\n`;
+                content += `That's like bringing a flip phone to a smartphone convention - technically it works, but everyone's going to notice.\n\n`;
+                content += `Time for an upgrade.\n\n`;
+            } else {
+                content = `🚀 Revolutionary ${topic} System${audience}\n\n`;
+                content += `Join 25,000+ professionals who have transformed their results with our proven methodology.\n\n`;
+            }
+
+            // Core value proposition
+            content += `**What You Get:**\n`;
+            content += `✅ 5x faster results than conventional methods\n`;
+            content += `✅ Reduce costs by up to 60% while improving outcomes\n`;
+            content += `✅ Step-by-step system that works even for beginners\n`;
+            content += `✅ Expert support and community access\n`;
+            content += `✅ 90-day guarantee - results or full refund\n\n`;
+
+            if (length === 'medium' || length === 'long') {
+                content += `**Why Traditional ${topic} Approaches Fail:**\n\n`;
+                content += `Most solutions focus on tactics without addressing the underlying systems that create sustainable success. They give you tips and tricks, but no framework for long-term growth.\n\n`;
+                content += `Our approach is different. We've reverse-engineered the strategies used by top performers and created a replicable system that works regardless of your starting point or experience level.\n\n`;
+
+                content += `**Perfect For:**\n`;
+                content += `• Business owners tired of inconsistent results\n`;
+                content += `• Professionals ready to accelerate their progress\n`;
+                content += `• Teams looking to standardize their approach\n`;
+                content += `• Anyone serious about mastering ${topic}\n\n`;
+            }
+
+            if (length === 'long') {
+                content += `**Success Stories:**\n\n`;
+                content += `"I was skeptical, but the results were undeniable. In 90 days, I achieved what took me 2 years to accomplish before." - Jennifer M.\n\n`;
+                content += `"This system eliminated the guesswork. For the first time, I had a clear path to follow and the confidence to execute it." - Robert K.\n\n`;
+                content += `"The ROI was incredible. The system paid for itself in the first month and continues to generate value every day." - Lisa P.\n\n`;
+
+                content += `**The Science Behind It:**\n\n`;
+                content += `Our methodology is based on 3 years of research analyzing over 10,000 successful ${topic} implementations. We identified the patterns that separate top performers from everyone else and distilled them into an actionable framework.\n\n`;
+                content += `This isn't guesswork or theory - it's a data-driven approach that has been tested and refined across hundreds of real-world scenarios.\n\n`;
+            }
+
+            // Urgency and offer
+            content += `💥 **EXCLUSIVE 48-HOUR OFFER:**\n\n`;
+            content += `🎯 Save 50% on the complete system\n`;
+            content += `🎁 FREE bonus: Advanced Implementation Workshop ($297 value)\n`;
+            content += `⚡ FREE: 6-month success coaching program ($497 value)\n`;
+            content += `🔒 FREE: Lifetime updates and new strategies\n\n`;
+
+            content += `**Regular Price: $997**\n`;
+            content += `**Your Price Today: $497**\n\n`;
+
+            content += `**Risk-Free Guarantee:**\n`;
+            content += `Try our system for 90 days. If you don't see significant improvement in your ${topic} results, get every penny back. No questions, no hassles.\n\n`;
+
+            content += `[CLAIM YOUR 50% DISCOUNT NOW]\n\n`;
+            content += `⏰ Timer: 47 hours, 23 minutes remaining`;
+
+            if (keywords) {
+                const keywordHashtags = keywords.split(',').map(k => `#${k.trim().replace(/\s+/g, '')}`).join(' ');
+                content += `\n\n${keywordHashtags}`;
+            }
+
+            return content;
+        }
+
+        function copyContent() {
+            const content = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied ✓';
+                btn.style.background = '#059669';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#10b981';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
